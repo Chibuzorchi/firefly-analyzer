@@ -45,7 +45,7 @@ jobs:
     - name: Test Docker image
       if: github.event_name == 'pull_request'
       run: |
-        docker run --rm firefly-analyzer:pr-${{ github.event.number }} --help
+        docker run --rm firefly-analyzer:pr-${{ github.event.number }} python -m firefly_analyzer.cli --help
 
   security-scan:
     runs-on: ubuntu-latest

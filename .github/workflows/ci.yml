@@ -82,7 +82,7 @@ jobs:
 
     - name: Test Docker image
       run: |
-        docker run --rm firefly-analyzer:test --help
+        docker run --rm firefly-analyzer:test python -m firefly_analyzer.cli --help
 
   integration-test:
     runs-on: ubuntu-latest
