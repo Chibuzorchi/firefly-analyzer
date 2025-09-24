@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  localstack:
+    image: localstack/localstack:latest
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./localstack-data:/tmp/localstack"
+    command: >
+      sh -c "
+        pip install awscli-local &&
+        echo 'Waiting for LocalStack to be ready...' &&
+        sleep 10 &&
+        echo 'Creating S3 bucket...' &&
+        awslocal s3 mb s3://firefly-analysis-reports &&
+        echo 'LocalStack ready with S3 bucket created!' &&
+        tail -f /dev/null
+      "
+
+  firefly-analyzer:
+    build: .
+    volumes:
+      - ./samples:/app/samples
+      - ./output:/app/output
+    depends_on:
+      - localstack
+    environment:
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+    command: >
+      sh -c "
+        echo 'Waiting for LocalStack to be ready...' &&
+        sleep 15 &&
+        echo 'Running Firefly Analyzer with LocalStack S3...' &&
+        python -m firefly_analyzer.cli analyze \
+          --cloud samples/cloud_resources.json \
+          --iac samples/iac_resources.json \
+          --output output/analysis_report.json \
+          --upload-s3 firefly-analysis-reports \
+          --s3-key analysis-report.json \
+          --localstack-endpoint http://localstack:4566 \
+          --verbose
+      "

@@ -1,0 +1,48 @@
+name: Status
+
+on:
+  workflow_run:
+    workflows: ["CI", "Security", "Docker Build and Push"]
+    types: [completed]
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion != 'success'
+    
+    steps:
+    - name: Notify on failure
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const { data: issues } = await github.rest.issues.listForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            state: 'open',
+            labels: 'workflow-failure'
+          });
+          
+          const title = `Workflow ${context.payload.workflow_run.name} failed`;
+          const body = `The workflow \`${context.payload.workflow_run.name}\` failed on commit ${context.payload.workflow_run.head_sha}.
+          
+          **Workflow Run:** ${context.payload.workflow_run.html_url}
+          **Commit:** ${context.payload.workflow_run.head_sha}
+          **Branch:** ${context.payload.workflow_run.head_branch}
+          
+          Please check the workflow logs for more details.`;
+          
+          // Check if issue already exists
+          const existingIssue = issues.find(issue => issue.title === title);
+          
+          if (existingIssue) {
+            console.log(`Issue already exists: ${existingIssue.html_url}`);
+          } else {
+            const { data: issue } = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['workflow-failure', 'bug']
+            });
+            console.log(`Created issue: ${issue.html_url}`);
+          }

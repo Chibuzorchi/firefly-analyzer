@@ -1,0 +1,99 @@
+name: Scheduled Analysis
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      cloud_resources_url:
+        description: 'URL to cloud resources JSON file'
+        required: false
+        default: ''
+      iac_resources_url:
+        description: 'URL to IaC resources JSON file'
+        required: false
+        default: ''
+
+jobs:
+  analysis:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -e .
+
+    - name: Download cloud resources
+      if: github.event.inputs.cloud_resources_url != ''
+      run: |
+        curl -o cloud_resources.json "${{ github.event.inputs.cloud_resources_url }}"
+
+    - name: Download IaC resources
+      if: github.event.inputs.iac_resources_url != ''
+      run: |
+        curl -o iac_resources.json "${{ github.event.inputs.iac_resources_url }}"
+
+    - name: Use default sample data
+      if: github.event.inputs.cloud_resources_url == '' || github.event.inputs.iac_resources_url == ''
+      run: |
+        cp samples/cloud_resources.json cloud_resources.json
+        cp samples/iac_resources.json iac_resources.json
+
+    - name: Run analysis
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+        S3_BUCKET: ${{ secrets.S3_BUCKET }}
+      run: |
+        python -m firefly_analyzer.cli analyze \
+          --cloud cloud_resources.json \
+          --iac iac_resources.json \
+          --upload-s3 ${{ secrets.S3_BUCKET }} \
+          --s3-key "scheduled-analysis-$(date +%Y%m%d-%H%M%S).json" \
+          --verbose
+
+    - name: Upload analysis report
+      uses: actions/upload-artifact@v3
+      with:
+        name: analysis-report
+        path: analysis_report.json
+        retention-days: 30
+
+    - name: Comment on PR (if triggered by PR)
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const report = JSON.parse(fs.readFileSync('analysis_report.json', 'utf8'));
+          const summary = report.summary;
+          
+          const comment = `## 🔍 Firefly Analysis Report
+          
+          **Summary:**
+          - Total Resources: ${summary.total}
+          - ✅ Matched: ${summary.match}
+          - ⚠️ Modified: ${summary.modified}
+          - ❌ Missing: ${summary.missing}
+          
+          [View full report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          `;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });

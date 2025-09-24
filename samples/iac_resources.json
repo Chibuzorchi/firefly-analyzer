@@ -1,0 +1,34 @@
+[
+  {
+    "id": "ec2-instance-1",
+    "type": "aws_ec2_instance",
+    "name": "web-server-01",
+    "region": "us-west-2",
+    "tags": {
+      "totalAmount": "22kb",
+      "Environment": "production",
+      "Owner": "devops-team"
+    },
+    "config": {
+      "instance_type": "t3.medium",
+      "size": "100GB",
+      "security_groups": ["sg-12345", "sg-67890"]
+    },
+    "status": "running"
+  },
+  {
+    "id": "s3-bucket-2",
+    "type": "aws_s3_bucket",
+    "name": "my-app-backups",
+    "region": "us-east-1",
+    "tags": {
+      "Environment": "production",
+      "Purpose": "backup"
+    },
+    "config": {
+      "versioning": true,
+      "encryption": "AES256"
+    },
+    "status": "active"
+  }
+]
