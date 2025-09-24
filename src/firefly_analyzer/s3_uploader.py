@@ -16,8 +16,8 @@ class S3Uploader:
     def __init__(
         self,
         endpoint_url: Optional[str] = None,
-        aws_access_key_id: str = "test",
-        aws_secret_access_key: str = "test",
+        aws_access_key_id: Optional[str] = None,
+        aws_secret_access_key: Optional[str] = None,
         region_name: str = "us-east-1",
     ):
         """
@@ -33,11 +33,15 @@ class S3Uploader:
         self.region_name = region_name
 
         # Initialize S3 client
-        session = boto3.Session(
-            aws_access_key_id=aws_access_key_id,
-            aws_secret_access_key=aws_secret_access_key,
-            region_name=region_name,
-        )
+        if aws_access_key_id and aws_secret_access_key:
+            session = boto3.Session(
+                aws_access_key_id=aws_access_key_id,
+                aws_secret_access_key=aws_secret_access_key,
+                region_name=region_name,
+            )
+        else:
+            # Use default AWS credentials (from environment or IAM role)
+            session = boto3.Session(region_name=region_name)
 
         if endpoint_url:
             self.s3_client = session.client("s3", endpoint_url=endpoint_url)
