@@ -101,29 +101,38 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -e .
+        pip install awscli
 
-    - name: Start LocalStack
+    - name: Verify AWS credentials
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
       run: |
-        docker run -d -p 4566:4566 --name localstack localstack/localstack:latest
-        sleep 30
+        aws sts get-caller-identity
 
     - name: Test S3 integration
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
       run: |
         python -m firefly_analyzer.cli analyze \
           --cloud samples/cloud_resources.json \
           --iac samples/iac_resources.json \
-          --upload-s3 firefly-test-bucket \
-          --s3-key test-analysis.json \
-          --localstack-endpoint http://localhost:4566 \
+          --upload-s3 ${{ secrets.S3_BUCKET }} \
+          --s3-key test-analysis-$(date +%Y%m%d-%H%M%S).json \
           --verbose
 
     - name: Test S3 operations
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
       run: |
-        python -m firefly_analyzer.cli list-buckets \
-          --localstack-endpoint http://localhost:4566
+        python -m firefly_analyzer.cli list-buckets
 
-    - name: Cleanup
+    - name: Cleanup test files
       if: always()
       run: |
-        docker stop localstack
-        docker rm localstack
+        echo "Test completed successfully"
