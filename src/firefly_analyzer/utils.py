@@ -40,8 +40,8 @@ def normalize_tags(tags: Union[Dict, List]) -> Dict[str, Any]:
     """
     if isinstance(tags, list):
         # Convert list of key-value pairs to dictionary
-        return {item.get('Key', item.get('key', '')): item.get('Value', item.get('value', '')) 
-                for item in tags if isinstance(item, dict)}
+        return {str(item.get('Key', item.get('key', ''))): item.get('Value', item.get('value', '')) 
+                for item in tags if isinstance(item, dict) and item.get('Key') is not None}
     elif isinstance(tags, dict):
         return tags
     else:
@@ -68,7 +68,7 @@ def load_json_file(file_path: str) -> Union[Dict, List]:
     except FileNotFoundError:
         raise FileNotFoundError(f"File not found: {file_path}")
     except json.JSONDecodeError as e:
-        raise json.JSONDecodeError(f"Invalid JSON in file {file_path}: {e}")
+        raise json.JSONDecodeError(f"Invalid JSON in file {file_path}: {e}", e.doc, e.pos)
 
 
 def save_json_file(data: Union[Dict, List], file_path: str) -> None:
