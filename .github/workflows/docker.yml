@@ -23,13 +23,19 @@ jobs:
       uses: docker/metadata-action@v5
       with:
         images: |
-          firefly-analyzer
+          ${{ secrets.DOCKER_USERNAME }}/firefly-analyzer
         tags: |
           type=ref,event=branch
           type=ref,event=pr
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
           type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
@@ -45,7 +51,7 @@ jobs:
     - name: Test Docker image
       if: github.event_name == 'pull_request'
       run: |
-        docker run --rm firefly-analyzer:pr-${{ github.event.number }} python -m firefly_analyzer.cli --help
+        docker run --rm ${{ secrets.DOCKER_USERNAME }}/firefly-analyzer:pr-${{ github.event.number }} python -m firefly_analyzer.cli --help
 
   security-scan:
     runs-on: ubuntu-latest
