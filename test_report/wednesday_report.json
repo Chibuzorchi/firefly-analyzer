@@ -1,0 +1,197 @@
+{
+  "analysis": [
+    {
+      "CloudResourceItem": {
+        "id": "ec2-instance-1",
+        "type": "aws_ec2_instance",
+        "name": "web-server-01",
+        "region": "us-west-2",
+        "tags": {
+          "totalAmount": "17kb",
+          "Environment": "production",
+          "Owner": "devops-team"
+        },
+        "config": {
+          "instance_type": "t3.medium",
+          "size": "100GB",
+          "security_groups": [
+            "sg-12345",
+            "sg-67890"
+          ]
+        },
+        "status": "running"
+      },
+      "IacResourceItem": {
+        "id": "ec2-instance-1",
+        "type": "aws_ec2_instance",
+        "name": "web-server-01",
+        "region": "us-west-2",
+        "tags": {
+          "totalAmount": "22kb",
+          "Environment": "production",
+          "Owner": "devops-team"
+        },
+        "config": {
+          "instance_type": "t3.medium",
+          "size": "100GB",
+          "security_groups": [
+            "sg-12345",
+            "sg-67890"
+          ]
+        },
+        "status": "running"
+      },
+      "State": "Modified",
+      "ChangeLog": [
+        {
+          "KeyName": "tags.totalAmount",
+          "CloudValue": "17kb",
+          "IacValue": "22kb"
+        }
+      ]
+    },
+    {
+      "CloudResourceItem": {
+        "id": "s3-bucket-1",
+        "type": "aws_s3_bucket",
+        "name": "my-app-logs",
+        "region": "us-east-1",
+        "tags": {
+          "Environment": "production",
+          "Purpose": "logging"
+        },
+        "config": {
+          "versioning": true,
+          "encryption": "AES256"
+        },
+        "status": "active"
+      },
+      "IacResourceItem": null,
+      "State": "Missing",
+      "ChangeLog": []
+    },
+    {
+      "CloudResourceItem": {
+        "id": "rds-db-1",
+        "type": "aws_rds_instance",
+        "name": "main-database",
+        "region": "us-west-2",
+        "tags": {
+          "Environment": "production",
+          "Backup": "daily"
+        },
+        "config": {
+          "engine": "postgresql",
+          "instance_class": "db.t3.micro",
+          "allocated_storage": 20
+        },
+        "status": "available"
+      },
+      "IacResourceItem": {
+        "id": "rds-db-1",
+        "type": "aws_rds_instance",
+        "name": "main-database",
+        "region": "us-west-2",
+        "tags": {
+          "Environment": "production",
+          "Backup": "daily"
+        },
+        "config": {
+          "engine": "postgresql",
+          "instance_class": "db.t3.micro",
+          "allocated_storage": 20
+        },
+        "status": "available"
+      },
+      "State": "Match",
+      "ChangeLog": []
+    },
+    {
+      "CloudResourceItem": {
+        "id": "lambda-function-1",
+        "type": "aws_lambda_function",
+        "name": "data-processor",
+        "region": "us-east-1",
+        "tags": {
+          "Environment": "production",
+          "Function": "data-processing"
+        },
+        "config": {
+          "runtime": "python3.9",
+          "memory": 512,
+          "timeout": 300
+        },
+        "status": "active"
+      },
+      "IacResourceItem": {
+        "id": "lambda-function-1",
+        "type": "aws_lambda_function",
+        "name": "data-processor",
+        "region": "us-east-1",
+        "tags": {
+          "Environment": "production",
+          "Function": "data-processing"
+        },
+        "config": {
+          "runtime": "python3.9",
+          "memory": 512,
+          "timeout": 300
+        },
+        "status": "active"
+      },
+      "State": "Match",
+      "ChangeLog": []
+    },
+    {
+      "CloudResourceItem": {
+        "id": "cloudfront-distribution-1",
+        "type": "aws_cloudfront_distribution",
+        "name": "cdn-distribution",
+        "region": "us-east-1",
+        "tags": {
+          "Environment": "production",
+          "Purpose": "content-delivery"
+        },
+        "config": {
+          "enabled": true,
+          "price_class": "PriceClass_100"
+        },
+        "status": "deployed"
+      },
+      "IacResourceItem": {
+        "id": "cloudfront-distribution-1",
+        "type": "aws_cloudfront_distribution",
+        "name": "cdn-distribution",
+        "region": "us-east-1",
+        "tags": {
+          "Environment": "staging",
+          "Purpose": "content-delivery"
+        },
+        "config": {
+          "enabled": true,
+          "price_class": "PriceClass_All"
+        },
+        "status": "deployed"
+      },
+      "State": "Modified",
+      "ChangeLog": [
+        {
+          "KeyName": "tags.Environment",
+          "CloudValue": "production",
+          "IacValue": "staging"
+        },
+        {
+          "KeyName": "config.price_class",
+          "CloudValue": "PriceClass_100",
+          "IacValue": "PriceClass_All"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "missing": 1,
+    "modified": 2,
+    "match": 2
+  }
+}

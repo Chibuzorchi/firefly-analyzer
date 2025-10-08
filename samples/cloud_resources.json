@@ -46,5 +46,36 @@
       "allocated_storage": 20
     },
     "status": "available"
+  },
+  {
+    "id": "lambda-function-1",
+    "type": "aws_lambda_function",
+    "name": "data-processor",
+    "region": "us-east-1",
+    "tags": {
+      "Environment": "production",
+      "Function": "data-processing"
+    },
+    "config": {
+      "runtime": "python3.9",
+      "memory": 512,
+      "timeout": 300
+    },
+    "status": "active"
+  },
+  {
+    "id": "cloudfront-distribution-1",
+    "type": "aws_cloudfront_distribution",
+    "name": "cdn-distribution",
+    "region": "us-east-1",
+    "tags": {
+      "Environment": "production",
+      "Purpose": "content-delivery"
+    },
+    "config": {
+      "enabled": true,
+      "price_class": "PriceClass_100"
+    },
+    "status": "deployed"
   }
 ]

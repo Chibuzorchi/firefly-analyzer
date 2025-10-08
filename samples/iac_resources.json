@@ -30,5 +30,52 @@
       "encryption": "AES256"
     },
     "status": "active"
+  },
+  {
+    "id": "lambda-function-1",
+    "type": "aws_lambda_function",
+    "name": "data-processor",
+    "region": "us-east-1",
+    "tags": {
+      "Environment": "production",
+      "Function": "data-processing"
+    },
+    "config": {
+      "runtime": "python3.9",
+      "memory": 512,
+      "timeout": 300
+    },
+    "status": "active"
+  },
+  {
+    "id": "cloudfront-distribution-1",
+    "type": "aws_cloudfront_distribution",
+    "name": "cdn-distribution",
+    "region": "us-east-1",
+    "tags": {
+      "Environment": "staging",
+      "Purpose": "content-delivery"
+    },
+    "config": {
+      "enabled": true,
+      "price_class": "PriceClass_All"
+    },
+    "status": "deployed"
+  },
+  {
+    "id": "rds-db-1",
+    "type": "aws_rds_instance",
+    "name": "main-database",
+    "region": "us-west-2",
+    "tags": {
+      "Environment": "production",
+      "Backup": "daily"
+    },
+    "config": {
+      "engine": "postgresql",
+      "instance_class": "db.t3.micro",
+      "allocated_storage": 20
+    },
+    "status": "available"
   }
 ]
