@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   localstack:
     image: localstack/localstack:latest
@@ -41,12 +39,5 @@ services:
         echo 'Waiting for LocalStack to be ready...' &&
         sleep 15 &&
         echo 'Running Firefly Analyzer with LocalStack S3...' &&
-        python -m firefly_analyzer.cli analyze \
-          --cloud samples/cloud_resources.json \
-          --iac samples/iac_resources.json \
-          --output output/analysis_report.json \
-          --upload-s3 firefly-analysis-reports \
-          --s3-key analysis-report.json \
-          --localstack-endpoint http://localstack:4566 \
-          --verbose
+        python -m firefly_analyzer.cli analyze --cloud samples/cloud_resources.json --iac samples/iac_resources.json --output output/analysis_report.json --upload-s3 firefly-analysis-reports --s3-key analysis-report.json --localstack-endpoint http://localstack:4566 --verbose
       "

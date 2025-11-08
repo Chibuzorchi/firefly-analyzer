@@ -1,0 +1,85 @@
+name: Terraform with Firefly
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'terraform/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'terraform/**'
+  workflow_dispatch:  # Allows manual triggering
+
+env:
+  FIREFLY_ACCESS_KEY: ${{ secrets.FIREFLY_ACCESS_KEY }}
+  FIREFLY_SECRET_KEY: ${{ secrets.FIREFLY_SECRET_KEY }}
+  WORKSPACE_NAME: emmanuel-saturday
+  AWS_REGION: us-east-1
+
+jobs:
+  terraform:
+    name: Terraform Plan and Apply
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: terraform
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Terraform Init
+        run: terraform init
+      
+      - name: Terraform Plan
+        run: |
+          terraform plan \
+            -json \
+            -out=tf.plan \
+            -var="bucket_name=firefly-test-$(date +%s)" \
+            > plan_log.jsonl
+          terraform show -json tf.plan > plan_output.json
+      
+      - name: Download Firefly CLI
+        run: |
+          curl -O https://gofirefly-prod-iac-ci-cli-binaries.s3.amazonaws.com/fireflyci/latest/fireflyci_Linux_x86_64.tar.gz
+          tar -xf fireflyci_Linux_x86_64.tar.gz
+          chmod a+x fireflyci
+      
+      - name: Firefly Post-Plan
+        run: |
+          ./fireflyci post-plan \
+            -l plan_log.jsonl \
+            -f plan_output.json \
+            --workspace ${{ env.WORKSPACE_NAME }}
+      
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          terraform apply \
+            -auto-approve \
+            -json \
+            -var="bucket_name=firefly-test-$(date +%s)" \
+            > apply_log.jsonl
+      
+      - name: Firefly Post-Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          ./fireflyci post-apply \
+            -f apply_log.jsonl \
+            --workspace ${{ env.WORKSPACE_NAME }}
+
