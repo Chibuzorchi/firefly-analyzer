@@ -12,7 +12,7 @@ jobs:
     
     steps:
     - name: Notify on failure
-      uses: actions/github-script@v6
+      uses: actions/github-script@v8
       with:
         script: |
           const { data: issues } = await github.rest.issues.listForRepo({
